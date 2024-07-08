@@ -1,6 +1,5 @@
 from PIL import Image
 import numpy as np
-from multiprocessing import Pool
 
 CHARACTERS = ".:-=+*≡#@" # The reference array for substituting pixels with characters, in decreasing brightness (. = lightest pixel, @ = darkest pixel)
 
@@ -49,8 +48,11 @@ def main():
             Output += getCharacter(val, brightInterval)
         Output += '\n'
 
-    print(Output)
-
+    f = open("output.txt", "w")
+    f.write("////////////////////////////////////////////////////////////////////////////\n")
+    f.write(Output)
+    f.close()
+    print("Output written into output.txt. Check out your newest art!")
 
 
 
