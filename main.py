@@ -1,9 +1,19 @@
-from PIL import Image, ImageOps
-from math import floor
+from PIL import Image
+import numpy as np
+
+CHARACTERS = ".:-=+*≡#@" # The reference array for substituting pixels with characters, in decreasing brightness (. = lightest pixel, @ = darkest pixel)
+
+
+def getCharacter(brightness_value: float, brightness_interval: list[float, float] ) -> str:
+    # This function is a little tricky, but since the intervals are all the same size and we know the minimum and maximum values of x, we can use a more efficient approach by calculating the interval index and then mapping this index to the corresponding discrete value.
 
 
 
-
+    interval_size = brightness_interval[1] - brightness_interval[0]
+    step = interval_size / len(CHARACTERS)
+    index = int((brightness_value - brightness_interval[0]) / step)
+    
+    return CHARACTERS[index] 
 
 
 
@@ -14,6 +24,15 @@ def main():
     with Image.open('cat.jpg') as img:
         img.thumbnail([100, 100])
         px = img.load()
+
+        brightArray = np.zeros([100,100])
+        for i in range(100):
+            for j in range(100):
+                pixelRGB = img.getpixel((i,j))
+                R,G,B = pixelRGB
+                brightness = sum([R,G,B])/3
+                brightArray[i,j] = brightness
+
 
 
 
