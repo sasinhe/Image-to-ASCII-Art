@@ -1,64 +1,40 @@
 from PIL import Image
 import numpy as np
+import argparse
+import os
 
-CHARACTERS = ".:-=+*≡#@" # The reference array for substituting pixels with characters, in decreasing brightness (. = lightest pixel, @ = darkest pixel)
+CHARACTERS = ".:-=+*≡#@" 
 
-
-def getCharacter(brightness_value: float, brightness_interval: list[float, float] ) -> str:
-    # This function is a little tricky, but since the intervals are all the same size and we know the minimum and maximum values of x, we can use a more efficient approach by calculating the interval index and then mapping this index to the corresponding discrete value.
-
-
-
-    interval_size = brightness_interval[1] - brightness_interval[0]
-    step = interval_size / len(CHARACTERS)
-
-    # This is bad practice!! But there is a problem when the brightness_value = max brightness, so that it's mapped outside of the array. This is the best solution I could think at the moment.
-    if brightness_value == brightness_interval[1]:
-        return CHARACTERS[-1]
-    else:
-        index = int((brightness_value - brightness_interval[0]) / step)
-
-
-    return CHARACTERS[index] 
-
-
-
-
+def getCharacter(brightness_value: float, brightness_interval: list[float, float]) -> str:
+    step = (brightness_interval[1] - brightness_interval[0]) / len(CHARACTERS)
+    index = int((brightness_value - brightness_interval[0]) / step)
+    return CHARACTERS[min(index, len(CHARACTERS) - 1)]
 
 def main():
-    # The idea here is to crop the original image into a square of 100x100 pixels, which is the number of characters we are using to display the ASCII art. S
-    with Image.open('cat.jpg') as img:
-        img.thumbnail([100, 100])
-        px = img.load()
-
-        brightArray = np.zeros([100,100])
-        for i in range(100):
-            for j in range(100):
-                pixelRGB = img.getpixel((i,j))
-                R,G,B = pixelRGB
-                brightness = sum([R,G,B])/3
-                brightArray[i,j] = brightness
-
+    parser = argparse.ArgumentParser(prog='Text to ASCII CLI', description='Convert images to ASCII art')
+    parser.add_argument('image', type=str, help='The image to be converted to ASCII art')
+    parser.add_argument('--output', type=str, help='The output file to save the ASCII art')
+    parser.add_argument('--size', type=int, nargs=2, default=[100, 100], help='Size of the ASCII art in characters (width height)')
     
-    Output = ''
-    brightInterval = [np.min(brightArray), np.max(brightArray)]
-    
-    for line in brightArray:
-        for val in line:
-            Output += getCharacter(val, brightInterval)
-        Output += '\n'
+    args = parser.parse_args()
 
-    f = open("output.txt", "w")
-    f.write("////////////////////////////////////////////////////////////////////////////\n")
-    f.write(Output)
-    f.close()
-    print("Output written into output.txt. Check out your newest art!")
+    if not os.path.exists(args.image):
+        print(f"Error: The file {args.image} does not exist.")
+        return
 
+    with Image.open(args.image) as img:
+        img = img.convert('L')  # Convert to grayscale
+        img.thumbnail(args.size)
+        px = np.array(img)
 
+        brightArray = np.interp(px, (px.min(), px.max()), (0, len(CHARACTERS)-1)).astype(int)
+        ascii_art = "\n".join("".join(CHARACTERS[val] for val in row) for row in brightArray)
 
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(ascii_art)
+        else:
+            print(ascii_art)
 
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
