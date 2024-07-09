@@ -15,7 +15,8 @@ def main():
     parser.add_argument('image', type=str, help='The image to be converted to ASCII art')
     parser.add_argument('--output', type=str, help='The output file to save the ASCII art')
     parser.add_argument('--size', type=int, nargs=2, default=[100, 100], help='Size of the ASCII art in characters (width height)')
-    
+    parser.add_argument('--text', type=str, help='The text to be converted to ASCII art')
+
     args = parser.parse_args()
 
     if not os.path.exists(args.image):
